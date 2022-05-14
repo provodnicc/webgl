@@ -5,55 +5,24 @@ https://sun9-52.userapi.com/impf/iM70UsbECdxTqxxAwS8HDDUstIwavW0s8oMoRQ/We26P54G
 
 var program
 var canvas
-// var cubeVertices = [
-//   -1, -1, -1,
-//    1, -1, -1,
-//    1,  1, -1,
-//   -1,  1
-// ]
 
-function start() {
-
-  // try{
+async function start() {
     canvas = document.getElementById("glcanvas");
     gl = canvas.getContext("webgl", {antialias:false});      // инициализация контекста GL
-
-    program = initShader()
-
-    draw()
-  
-    // setAttr()
-
-    initGl()
-    // getIMG()
-
-    // console.log("script already working")
-  // }catch(e){
-    // console.log("script does not started, because you monkey")
-  // }
-
+    program = await initShader()
+    await draw()
+    await initGl()
 }
-
-function setAttr(){
-  let pos = gl.getAttribLocation(shaderProgram, 'pos')
-  gl.vertexAttrib3f(pos, )
-}
-
-function load_shaders(){
-
-}
-
-function initGl(){
+async function initGl(){
   gl.clearColor(0.2, 0.8, 0.5, 1.0);                      // установить в качестве цвета очистки буфера цвета чёрный, полная непрозрачность
   gl.enable(gl.DEPTH_TEST);                               // включает использование буфера глубины
   gl.depthFunc(gl.LEQUAL);                                // определяет работу буфера глубины: более ближние объекты перекрывают дальние
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);      // очистить буфер цвета и буфер глубины.
   gl.drawArrays(gl.POINTS, 4, 1)
-  draw()
+  await draw()
 }
 
-function draw(){
-  console.log(program)
+async function draw(){
 
   var positionLocation = gl.getAttribLocation(program, "a_position")
   var texcoordLocation = gl.getAttribLocation(program, "a_texCoord")
@@ -79,28 +48,6 @@ function draw(){
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   
   gl.enableVertexAttribArray(positionLocation);
-  // Привязываем буфер положений
-  // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  
-  // var texcoordBuffer = gl.createBuffer();
-
-  // var texcoords = [
-  //   0.0,  0.0,
-  //   1.0,  0.0,
-  //   0.0,  1.0,
-  //   0.0,  1.0,
-  //   1.0,  0.0,
-  //   1.0,  1.0,
-  // ]
-
-  // gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW)
-
-
-
-
-
-  // Указываем атрибуту, как получать данные от positionBuffer (ARRAY_BUFFER)
   var size = 2;          // 2 компоненты на итерацию
   var type = gl.FLOAT;   // наши данные - 32-битные числа с плавающей точкой
   var normalize = false; // не нормализовать данные
@@ -119,10 +66,9 @@ function draw(){
 
 
 
-function getIMG(){
+async function getIMG(){
   img = new Image()
   img.src = url
-  console.log(img)
   img.webGLtexture = false
   img.crossOrigin = "anonymous"
   img.onload = (e) => {
@@ -152,35 +98,19 @@ function getIMG(){
   return img
 }
 
-function getShader(id) {
-  var shaderScript, theSource, currentChild, shader;
+async function getShader(id) {
+  var shaderScript, shader;
 
-  shaderScript = document.getElementById(id);
-
+  await fetch("http://localhost:5000/"+id
+    ).then(k => k.json()).then( text =>{shaderScript = text})
   if (!shaderScript) {
     return null;
   }
-
-  theSource = "";
-  currentChild = shaderScript.firstChild;
-
-  while(currentChild) {
-    if (currentChild.nodeType == currentChild.TEXT_NODE) {
-      theSource += currentChild.textContent;
-    }
-
-    currentChild = currentChild.nextSibling;
+  if (id == "frag"){
+    shader = await createShader(gl, shaderScript, gl.FRAGMENT_SHADER);
+  }else{
+    shader = await createShader(gl, shaderScript, gl.VERTEX_SHADER);
   }
-  if (shaderScript.type == "x-shader/x-fragment") {
-    shader = gl.createShader(gl.FRAGMENT_SHADER);
-  } else if (shaderScript.type == "x-shader/x-vertex") {
-    shader = gl.createShader(gl.VERTEX_SHADER);
-  } else {
-     // неизвестный тип шейдера
-     return null;
-  }
-  gl.shaderSource(shader, theSource);
-
   // скомпилировать шейдерную программу
   gl.compileShader(shader);
 
@@ -192,11 +122,23 @@ function getShader(id) {
 
   return shader;
 }
+async function createShader (gl, sourceCode, type) {
+  // Compiles either a shader of type gl.VERTEX_SHADER or gl.FRAGMENT_SHADER
+  var shader = gl.createShader( type );
+  gl.shaderSource( shader, sourceCode );
+  gl.compileShader( shader );
 
-function initShader(){
+  if ( !gl.getShaderParameter(shader, gl.COMPILE_STATUS) ) {
+    var info = gl.getShaderInfoLog( shader );
+    throw 'Could not compile WebGL program. \n\n' + info;
+  }
+  return shader;
+}
 
-  var VS = getShader('shader-vs')
-  var FS = getShader('shader-fs')
+async function initShader(){
+
+  var VS = await getShader('vert')
+  var FS = await getShader('frag')
   var shaderProgram = gl.createProgram()
 
   gl.attachShader(shaderProgram, VS)
