@@ -1,10 +1,11 @@
-attribute vec4 a_position;
-varying vec4 glPosition;
+#version 300 es
+out vec3 glPosition;
+in vec3 vPosition;
 
-void main() {
+void main(void) {
 
     // gl_Position - специальная переменная вершинного шейдера,
     // которая отвечает за установку положения
-    gl_Position = a_position;
-    glPosition = gl_Position;
+    gl_Position = vec4(vPosition, 1.0);
+    glPosition = vPosition;
 }

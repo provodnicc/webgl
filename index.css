@@ -1,0 +1,7 @@
+.wrapper{
+    display: flex;
+    gap: 10px;
+}
+.s_camera{
+    background-color: bisque;
+}

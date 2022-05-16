@@ -1,14 +1,47 @@
 var gl; // глобальная переменная для контекста WebGL
-var url = (`
-https://sun9-52.userapi.com/impf/iM70UsbECdxTqxxAwS8HDDUstIwavW0s8oMoRQ/We26P54GzRs.jpg?size=0x0&quality=90&proxy=1&sign=91bfa1e9a9046ade9c764620cfdbb0d6&c_uniq_tag=gxtCjuEqjkPwC6BdlpcdN6OM156otVQo7dyCeU2Xvbo&type=video_thumb
-`)
-
 var program
 var canvas
+var rl = 0.0, fb = -4.0, ud = 0.0
+var x = 1, y = 0
+function test(e){
+  if((e.key== "w")||(e.key== "W")||(e.key== "ц")||(e.key== "Ц")){
+    fb += 0.1
+  }else if((e.key == "s")||(e.key== "W")||(e.key== "ц")||(e.key== "Ц")){
+    fb -= 0.1
+  }else if((e.key == "a")||(e.key== "A")||(e.key== "ф")||(e.key== "Ф")){
+    rl -= 0.1
+  }else if((e.key == "d")||(e.key== "D")||(e.key== "в")||(e.key== "В")){
+    rl += 0.1
+  }else if((e.key == "q")||(e.key== "Q")||(e.key== "й")||(e.key== "Й")){
+    ud += 0.1
+  }else if((e.key == "e")||(e.key== "E")||(e.key== "у")||(e.key== "У")){
+    ud -= 0.1
+  }
+  
+  else if(e.key == "ArrowUp"){
+    y += 0.1
+  }else if(e.key == "ArrowDown"){
+    y -= 0.1
+  }else if(e.key == "ArrowLeft"){
+    x -= 0.1
+  }else if(e.key == "ArrowRight"){
+    x += 0.1
+  }
+  console.log(e.key)
+    start()
+}
 
+async function set_range(){
+  input = document.getElementById("reflection_input")
+  span = document.getElementById("reflection_value")
+  span.textContent = input.value*100 + "%"
+  await start()
+}
+    
 async function start() {
+    
     canvas = document.getElementById("glcanvas");
-    gl = canvas.getContext("webgl", {antialias:false});      // инициализация контекста GL
+    gl = canvas.getContext("webgl2", {antialias:false});      // инициализация контекста GL
     program = await initShader()
     await draw()
     await initGl()
@@ -24,10 +57,24 @@ async function initGl(){
 
 async function draw(){
 
-  var positionLocation = gl.getAttribLocation(program, "a_position")
-  var texcoordLocation = gl.getAttribLocation(program, "a_texCoord")
-
+  var positionLocation = gl.getAttribLocation(program, "vPosition")
   var positionBuffer = gl.createBuffer()
+  
+  var reflectionLocation = gl.getUniformLocation(program, "reflection")  
+  var rlLocation = gl.getUniformLocation(program, "rl")  
+  var fbLocation = gl.getUniformLocation(program, "fb")   
+  var udLocation = gl.getUniformLocation(program, "ud")   
+  var xLocation = gl.getUniformLocation(program, "x")   
+  var yLocation = gl.getUniformLocation(program, "y")   
+
+
+  gl.uniform1f(reflectionLocation, Number(document.getElementById("reflection_input").value))
+  gl.uniform1f(rlLocation, rl)
+  gl.uniform1f(fbLocation, fb)
+  gl.uniform1f(udLocation, ud)
+  gl.uniform1f(xLocation,  x)
+  gl.uniform1f(yLocation,  y)
+
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   // три двумерных точки
   var positions = [
@@ -43,7 +90,6 @@ async function draw(){
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-  
   
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   
@@ -61,10 +107,8 @@ async function draw(){
   var offset = 0;
   var count = positions.length/2;
   gl.drawArrays(primitiveType, offset, count);
-
+    
 }
-
-
 
 async function getIMG(){
   img = new Image()
@@ -122,6 +166,7 @@ async function getShader(id) {
 
   return shader;
 }
+
 async function createShader (gl, sourceCode, type) {
   // Compiles either a shader of type gl.VERTEX_SHADER or gl.FRAGMENT_SHADER
   var shader = gl.createShader( type );
@@ -136,7 +181,6 @@ async function createShader (gl, sourceCode, type) {
 }
 
 async function initShader(){
-
   var VS = await getShader('vert')
   var FS = await getShader('frag')
   var shaderProgram = gl.createProgram()
