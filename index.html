@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="index.css">
+  <script src="script.js" type="text/javascript"></script>
+  <title>Это Веб ГЛ</title>
+</head>
+<body onkeydown="test(event)" onload="start()">
+  
+  <div class="wrapper">
+    <canvas class="canvas" id="glcanvas" width="640" height="640">
+      Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+    </canvas>
+    <div class="settings">
+      <div class="settings_reflection">
+        прозрачность:
+        <input oninput="set_range()" class="reflection" id="reflection_input" type="range" min="0" max="1" step="0.1" value="0.0">
+        <span id="reflection_value"></span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
