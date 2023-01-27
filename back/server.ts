@@ -51,4 +51,4 @@ app.use('/index.css',(_req:any,res:any,_next:any)=>{
 })
 
 
-app.listen(5000, ()=>{})
+app.listen(5000, ()=>console.log('Server started on port: 5000'))
